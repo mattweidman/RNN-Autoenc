@@ -60,8 +60,7 @@ with open(inname, 'r') as infile:
                 if line[j] == "'":
                     if j > 0 and j < len(line)-1 and \
                             line[j-1] != ' ' and line[j+1] != ' ':
-                        j += 1
-                        continue
+                        pass
                     elif j > 0 and line[j-1] != ' ':
                         line = line[:j] + ' ' + line[j:]
                         j += 1
