@@ -51,3 +51,80 @@ class FileBuilder:
             if endStr in line:
                 isRemoving = False
         self.lines = newLines
+
+    def remove_number_lines(self, minLineLen=None):
+        """
+        If a line contains only numeric characters, remove it
+        minLineLen: if given, will only remove lines shorter than this
+        """
+        newLines = []
+        for line in self.lines:
+            all_nums = True
+            found_num = False
+            for c in line.strip():
+                if c < '0' or c > '9':
+                    all_nums = False
+                    break
+                else:
+                    found_num = True
+            all_nums = all_nums and found_num
+            if not all_nums or len(line.strip()) >= minLineLen:
+                newLines.append(line)
+        self.lines = newLines
+
+    def sub(self, regex, replacement):
+        """
+        Go through each line, and if regex is found, replace it
+        """
+        for i, line in enumerate(self.lines):
+            self.lines[i] = re.sub(regex, replacement, line)
+
+    def to_words(self, char_words):
+        """
+        Convert any chosen character into a word so that
+        it has spaces on either side
+        char_words: list of characters to convert to words
+        """
+        for i, line in enumerate(self.lines):
+            j = 0
+            while j < len(line):
+                if line[j] in char_words:
+                    if j>0 and line[j-1] != ' ':
+                        line = line[:j] + ' ' + line[j:]
+                        j += 1
+                    if j < len(line)-1 and line[j+1] not in [' ','\n','\r']:
+                        line = line[:j+1] + ' ' + line[j+1:]
+                        j += 1
+                j += 1
+            self.lines[i] = line
+
+    def to_words_apostrophes(self):
+        """
+        Convert apostrophes to words, but only the ones used
+        as quotes - not apostrophes used in contractions.
+        """
+        for i, line in enumerate(self.lines):
+            j = 0
+            while j < len(line):
+                if line[j] == "'":
+                    if j > 0 and j < len(line)-1 and \
+                            line[j-1] != ' ' and \
+                            line[j+1] not in [' ','\n','\r']:
+                        pass
+                    elif j > 0 and line[j-1] != ' ':
+                        line = line[:j] + ' ' + line[j:]
+                        j += 1
+                    elif j < len(line)-1 and \
+                            line[j+1] not in [' ','\n','\r']:
+                        line = line[:j+1] + ' ' + line[j+1:]
+                        j += 1
+                j += 1
+            self.lines[i] = line
+
+    def write(self, fileName):
+        """
+        Write lines to file
+        """
+        with open(fileName, 'w') as f:
+            for line in self.lines:
+                f.write(line)
