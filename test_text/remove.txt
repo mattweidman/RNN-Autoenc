@@ -1,0 +1,9 @@
+abcdefg
+<<delete
+this
+please>>
+hijklmn
+<<delete this>>
+<<and this
+>>
+opqrstu
