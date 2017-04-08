@@ -57,6 +57,24 @@ def test_apostrophes():
     assert builder[3] == "' can't '\n"
     assert builder[4] == "' ' ' '\n"
 
+def test_remove_empty_lines():
+    builder = FileBuilder("../test_text/empty_lines.txt")
+    builder.remove_empty_lines()
+    assert builder[0] == 'a\n'
+    assert builder[1] == '9\n'
+
+def test_remove_repeated_empty_lines():
+    builder = FileBuilder("../test_text/empty_lines_2.txt")
+    builder.remove_repeated_empty_lines()
+    assert builder[0] == 'abc\n'
+    assert builder[1] == 'def\n'
+    assert builder[2] == '\n'
+    assert builder[3] == 'ghi\n'
+    assert builder[4] == '\n'
+    assert builder[5] == 'jkl\n'
+    assert builder[6] == '\n'
+    assert builder[7] == 'mno\n'
+
 if __name__ == "__main__":
     test_load()
     test_remove_lines()
@@ -65,3 +83,5 @@ if __name__ == "__main__":
     test_sub()
     test_to_words()
     test_apostrophes()
+    test_remove_empty_lines()
+    test_remove_repeated_empty_lines()

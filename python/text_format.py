@@ -72,6 +72,30 @@ class FileBuilder:
                 newLines.append(line)
         self.lines = newLines
 
+    def remove_empty_lines(self):
+        """
+        Remove lines that are just whitespace
+        """
+        newLines = []
+        for line in self.lines:
+            if line.strip() != "":
+                newLines.append(line)
+        self.lines = newLines
+
+    def remove_repeated_empty_lines(self):
+        """
+        Make sure there is no repeated sequence of empty lines longer
+        than one.
+        """
+        newLines = []
+        last_line_was_empty = False
+        for line in self.lines:
+            this_line_is_empty = line.strip() == ""
+            if not (last_line_was_empty and this_line_is_empty):
+                newLines.append(line)
+            last_line_was_empty = this_line_is_empty
+        self.lines = newLines
+
     def sub(self, regex, replacement):
         """
         Go through each line, and if regex is found, replace it
