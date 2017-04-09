@@ -1,6 +1,7 @@
 from text_format import FileIterator
 from text_format import FileBuilder
 from text_format import TextConverter
+from text_format import matrix_to_string, tensor_to_string
 
 inname = "../shakespeare/shakes_raw.txt"
 outname = "../shakespeare/shakes_out.txt"
@@ -25,8 +26,8 @@ def modifyShakespeare(file_in, file_out):
 
 def shakespeare2vec(filename):
     # set up problem
-    line_nums = [9, 7, 5]
-    line_len = 12
+    line_nums = [9, 7, 5, 28, 20]
+    line_len = 16
     embed_size = 100
 
     # train word2vec model
@@ -38,16 +39,8 @@ def shakespeare2vec(filename):
     tensor = converter.get_tensor(line_nums, model, line_len, embed_size)
 
     # convert back to sentence
-    output_text = ""
-    for i in range(len(line_nums)):
-        sentence_arr = []
-        for vec in tensor[i]:
-           word = model.similar_by_vector(vec, topn=1)
-           sentence_arr.append(word)
-        sentence = ' '.join([tup[0][0] for tup in sentence_arr])
-        output_text += sentence
-    print(output_text)
+    print(tensor_to_string(tensor, model))
 
 if __name__ == "__main__":
-    modifyShakespeare(inname, outname)
-    #shakespeare2vec(outname)
+    #modifyShakespeare(inname, outname)
+    shakespeare2vec(outname)

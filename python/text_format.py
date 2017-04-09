@@ -300,13 +300,54 @@ def string_to_matrix(s, model, line_len, embed_size):
     """
     text_matrix = np.zeros((line_len, embed_size))
     words = s.split(' ')
-    for j in range(line_len):
-        if j < len(words) and words[j] in model:
-            word = words[j]
-            text_matrix[j,:] = model[word]
+    words_i = 0
+    matrix_i = 0
+    while matrix_i < line_len:
+        if words_i < len(words):
+            word = words[words_i]
+            if word in model:
+                text_matrix[matrix_i,:] = model[word]
+                matrix_i += 1
+            words_i += 1
         else:
-            text_matrix[j,:] = model['']
+            text_matrix[matrix_i,:] = model['']
+            matrix_i += 1
     return text_matrix
+
+def matrix_to_string(matrix, model):
+    """
+    Use closest word2vec embedding in model to convert numpy
+    matrix to string.
+    matrix: size line_len x embed_size
+    model: gensim word2vec model
+    """
+    # get list of words
+    sentence_arr = []
+    for vec in matrix:
+        word = model.similar_by_vector(vec, topn=1)
+        sentence_arr.append(word[0][0])
+
+    # remove padding at the end
+    for i in range(len(sentence_arr)-1, -1, -1):
+        if sentence_arr[i] != '':
+            break
+    sentence_arr = sentence_arr[:i+1]
+
+    # join words together
+    return ' '.join(sentence_arr)
+
+def tensor_to_string(tensor, model):
+    """
+    Take a list of numpy matrices, convert them to strings,
+    and concatenate them.
+    tensor: size num_lines x line_len x embed_size
+    model: gensim word2vec model
+    """
+    output_text = ""
+    for i in range(len(tensor)):
+        sentence = matrix_to_string(tensor[i], model)
+        output_text += sentence
+    return output_text
 
 
 class TextConverter:
