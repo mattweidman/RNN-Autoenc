@@ -1,5 +1,8 @@
 from text_format import FileBuilder
 from text_format import TextConverter
+from text_format import string_to_matrix
+
+import numpy as np
 
 outfile = "cache/test"
 
@@ -100,6 +103,14 @@ def test_get_lines():
         "g\n", "f\n", "e\n", "d\n", "c\n", "b\n", "a\n"]
     assert converter.get_lines([]) == []
 
+def test_s2m():
+    model = {'a' : np.array([1,0]), 'b' : np.array([0,1]),
+        '' : np.zeros((2))}
+    s = "a b b a b"
+    calc_matrix = string_to_matrix(s, model, 6, 2)
+    exp_matrix = np.array([[1,0], [0,1], [0,1], [1,0], [0,1], [0,0]])
+    assert np.array_equal(calc_matrix, exp_matrix)
+
 if __name__ == "__main__":
     test_load()
     test_remove_lines()
@@ -112,3 +123,4 @@ if __name__ == "__main__":
     test_remove_repeated_empty_lines()
     #test_get_model()
     test_get_lines()
+    test_s2m()

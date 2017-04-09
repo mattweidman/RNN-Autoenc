@@ -3,6 +3,7 @@ import re
 import os
 
 import gensim
+import numpy as np
 
 class FileIterator:
     """
@@ -255,6 +256,24 @@ class FileBuilder:
         if fileName is not None:
             model.save(fileName)
         return model
+
+def string_to_matrix(s, model, line_len, embed_size):
+    """
+    Use word2vec to convert a string to a numpy matrix.
+    s: string to convert
+    model: word2vec model
+    line_len: maximum number of words in a line
+    embed_size: size of embeddings
+    """
+    text_matrix = np.zeros((line_len, embed_size))
+    words = s.split(' ')
+    for j in range(line_len):
+        if j < len(words) and words[j] in model:
+            word = words[j]
+            text_matrix[j,:] = model[word]
+        else:
+            text_matrix[j,:] = model['']
+    return text_matrix
 
 class TextConverter:
     """
