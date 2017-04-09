@@ -32,6 +32,13 @@ def test_remove_number_lines():
     assert builder[4] == '12345\n'
     assert builder[5] == '1234\n'
     assert builder[6] == 'q\n'
+    builder = FileBuilder("../test_text/number_lines.txt")
+    builder.remove_number_lines()
+    assert builder[0] == 'abc\n'
+    assert builder[1] == '\n'
+    assert builder[2] == '   \n'
+    assert builder[3] == 'six\n'
+    assert builder[4] == 'q\n'
 
 def test_sub():
     builder = FileBuilder("../test_text/sub.txt")

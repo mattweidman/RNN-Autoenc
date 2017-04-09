@@ -68,7 +68,8 @@ class FileBuilder:
                 else:
                     found_num = True
             all_nums = all_nums and found_num
-            if not all_nums or len(line.strip()) >= minLineLen:
+            if not all_nums or (minLineLen != None and \
+                    len(line.strip()) >= minLineLen):
                 newLines.append(line)
         self.lines = newLines
 
