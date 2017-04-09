@@ -4,6 +4,26 @@ import os
 
 import gensim
 
+class FileIterator:
+    """
+    Class that lets you iterate line-by-line through a file,
+    returning lines as lists of words. Used by word2vec.
+    """
+
+    def __init__(self, filename):
+        """
+        Choose file path.
+        """
+        self.filename = filename
+
+    def __iter__(self):
+        """
+        Each item iterated over is a list of words.
+        """
+        with open(self.filename, 'r') as f:
+            for line in f:
+                yield line.split(' ')
+
 class FileBuilder:
     """
     Class for loading and modifying a file.
@@ -155,8 +175,12 @@ class FileBuilder:
         """
         Go through each line, and if regex is found, replace it
         """
-        for i, line in enumerate(self.lines):
-            self.lines[i] = re.sub(regex, replacement, line)
+        tempname = self.__copy_to_temp()
+        with open(self.filename, 'w') as f:
+            with open(tempname, 'r') as temp:
+                for line in temp:
+                    f.write(re.sub(regex, replacement, line))
+        os.remove(tempname)
 
     def to_words(self, char_words):
         """
@@ -164,41 +188,50 @@ class FileBuilder:
         it has spaces on either side
         char_words: list of characters to convert to words
         """
-        for i, line in enumerate(self.lines):
-            j = 0
-            while j < len(line):
-                if line[j] in char_words:
-                    if j>0 and line[j-1] != ' ':
-                        line = line[:j] + ' ' + line[j:]
+        tempname = self.__copy_to_temp()
+        with open(self.filename, 'w') as f:
+            with open(tempname, 'r') as temp:
+                for line in temp:
+                    j = 0
+                    while j < len(line):
+                        if line[j] in char_words:
+                            if j>0 and line[j-1] != ' ':
+                                line = line[:j] + ' ' + line[j:]
+                                j += 1
+                            if j < len(line)-1 and \
+                                    line[j+1] not in [' ','\n','\r']:
+                                line = line[:j+1] + ' ' + line[j+1:]
+                                j += 1
                         j += 1
-                    if j < len(line)-1 and line[j+1] not in [' ','\n','\r']:
-                        line = line[:j+1] + ' ' + line[j+1:]
-                        j += 1
-                j += 1
-            self.lines[i] = line
+                    f.write(line)
+        os.remove(tempname)
 
     def to_words_apostrophes(self):
         """
         Convert apostrophes to words, but only the ones used
         as quotes - not apostrophes used in contractions.
         """
-        for i, line in enumerate(self.lines):
-            j = 0
-            while j < len(line):
-                if line[j] == "'":
-                    if j > 0 and j < len(line)-1 and \
-                            line[j-1] != ' ' and \
-                            line[j+1] not in [' ','\n','\r']:
-                        pass
-                    elif j > 0 and line[j-1] != ' ':
-                        line = line[:j] + ' ' + line[j:]
+        tempname = self.__copy_to_temp()
+        with open(self.filename, 'w') as f:
+            with open(tempname, 'r') as temp:
+                for line in temp:
+                    j = 0
+                    while j < len(line):
+                        if line[j] == "'":
+                            if j > 0 and j < len(line)-1 and \
+                                    line[j-1] != ' ' and \
+                                    line[j+1] not in [' ','\n','\r']:
+                                pass
+                            elif j > 0 and line[j-1] != ' ':
+                                line = line[:j] + ' ' + line[j:]
+                                j += 1
+                            elif j < len(line)-1 and \
+                                    line[j+1] not in [' ','\n','\r']:
+                                line = line[:j+1] + ' ' + line[j+1:]
+                                j += 1
                         j += 1
-                    elif j < len(line)-1 and \
-                            line[j+1] not in [' ','\n','\r']:
-                        line = line[:j+1] + ' ' + line[j+1:]
-                        j += 1
-                j += 1
-            self.lines[i] = line
+                    f.write(line)
+        os.remove(tempname)
 
     '''def write(self, fileName):
         """
@@ -216,7 +249,8 @@ class FileBuilder:
         workers: number of worker threads running at once
         fileName: file to write model to. If none, doesn't write.
         """
-        model = gensim.models.Word2Vec(self.lines,
+        iterator = FileIterator(self.filename)
+        model = gensim.models.Word2Vec(iterator,
             min_count=min_count, size=size, workers=workers)
         if fileName is not None:
             model.save(fileName)
