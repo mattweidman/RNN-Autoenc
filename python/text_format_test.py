@@ -121,6 +121,6 @@ if __name__ == "__main__":
     test_apostrophes()
     test_remove_empty_lines()
     test_remove_repeated_empty_lines()
-    #test_get_model()
+    test_get_model()
     test_get_lines()
     test_s2m()

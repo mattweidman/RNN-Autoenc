@@ -25,6 +25,18 @@ class FileIterator:
             for line in f:
                 yield line.split(' ')
 
+    def get_model(self, min_count=5, size=100, workers=3):
+        """
+        Get a word2vec model for this file.
+        min_count: forgets about words less frequent than this
+        size: output vector size
+        workers: number of worker threads running at once
+        """
+        model = gensim.models.Word2Vec(self,
+            min_count=min_count, size=size, workers=workers)
+        return model
+
+
 class FileBuilder:
     """
     Class for loading and modifying a file.
@@ -234,14 +246,6 @@ class FileBuilder:
                     f.write(line)
         os.remove(tempname)
 
-    '''def write(self, fileName):
-        """
-        Write lines to file
-        """
-        with open(fileName, 'w') as f:
-            for line in self.lines:
-                f.write(line)'''
-
     def get_model(self, min_count=5, size=100, workers=3, fileName=None):
         """
         Constructs word2vec model
@@ -251,11 +255,12 @@ class FileBuilder:
         fileName: file to write model to. If none, doesn't write.
         """
         iterator = FileIterator(self.filename)
-        model = gensim.models.Word2Vec(iterator,
-            min_count=min_count, size=size, workers=workers)
+        model = iterator.get_model(min_count=min_count, size=size,
+            workers=workers)
         if fileName is not None:
             model.save(fileName)
         return model
+
 
 def string_to_matrix(s, model, line_len, embed_size):
     """
@@ -264,6 +269,7 @@ def string_to_matrix(s, model, line_len, embed_size):
     model: word2vec model
     line_len: maximum number of words in a line
     embed_size: size of embeddings
+    returns matrix size line_len x embed_size
     """
     text_matrix = np.zeros((line_len, embed_size))
     words = s.split(' ')
@@ -274,6 +280,7 @@ def string_to_matrix(s, model, line_len, embed_size):
         else:
             text_matrix[j,:] = model['']
     return text_matrix
+
 
 class TextConverter:
     """
@@ -310,3 +317,18 @@ class TextConverter:
             index = line_num_to_index[line_num]
             line_strs[index] = line_str
         return line_strs
+
+    def get_tensor(self, line_nums, model, line_len, embed_size):
+        """
+        Returns the numpy tensor representation of lines in text.
+        line_nums: line numbers of text to extract (list of ints)
+        model: word2vec model
+        line_len: maximum number of words in a line
+        embed_size: size of embeddings
+        """
+        tensor = np.zeros((len(line_nums), line_len, embed_size))
+        lines = self.get_lines(line_nums)
+        for i in range(len(line_nums)):
+            tensor[i] = string_to_matrix(lines[i], model, line_len,
+                embed_size)
+        return tensor
