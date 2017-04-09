@@ -1,4 +1,6 @@
+import random
 import re
+import os
 
 import gensim
 
@@ -7,33 +9,75 @@ class FileBuilder:
     Class for loading and modifying a file.
     """
 
-    def __init__(self, fileName):
+    def __init__(self, infile, outfile):
         """
-        Load a file.
-        filename: name of file to load
+        Load a file and write it in outfile. All future
+        operations will modify outfile.
+        infile: name of file to read from
+        outfile: name of file to write to
         """
-        with open(fileName, 'r') as f:
-            self.lines = f.readlines()
+        with open(infile, 'r') as inf:
+            with open(outfile, 'w') as outf:
+                for line in inf:
+                    outf.write(line)
+        self.filename = outfile
 
     def __getitem__(self, index):
         """
-        Find a line at a certain index
+        Find a line at a certain index. To preserve memory,
+        this function will iterate line-by-line until it gets
+        to the right index, instead of using an array index.
+        So indexing a FileBuilder takes linear time.
         """
-        return self.lines[index]
+        with open(self.filename, 'r') as f:
+            i = 0
+            for i, line in enumerate(f):
+                if i == index:
+                    return line
+            raise IndexError
 
     def __len__(self):
         """
-        Number of lines in file
+        Number of lines in file. Like __getitem__(), this
+        takes linear time. I don't cache the length because
+        there are a lot of functions that change the length
+        of the file, and changing length in every function
+        that does this would make everything more error prone.
         """
-        return len(self.lines)
+        with open(self.filename, 'r') as f:
+            length = 0
+            for line in f: length += 1
+            return length
+
+    def __copy_to_temp(self):
+        """
+        Copy the file to a temporary one.
+        Returns name of file copied.
+        """
+        randnum = str(random.getrandbits(128))
+        tempname = "cache/temp" + randnum
+        with open(self.filename, 'r') as f:
+            with open(tempname, 'w') as temp:
+                for line in f:
+                    temp.write(line)
+        return tempname
 
     def remove_lines(self, start, end):
         """
-        Remove lines from start to end
+        Remove lines from start to end.
         start: index of first line to remove (inclusive)
         end: index after last line to remove (exclusive)
         """
-        self.lines[start:end] = []
+        # write to temporary file
+        tempname = self.__copy_to_temp()
+        # move from temporary file to original file
+        with open(self.filename, 'w') as f:
+            with open(tempname, 'r') as temp:
+                for i, line in enumerate(temp):
+                    if i < start or i >= end:
+                        f.write(line)
+        # delete temporary file
+        os.remove(tempname)
 
     def remove_lines_within(self, startStr, endStr):
         """
@@ -43,61 +87,69 @@ class FileBuilder:
         startStr: indicator to start removing strings
         endStr: indicator to stop removing strings
         """
-        newLines = []
+        tempname = self.__copy_to_temp()
         isRemoving = False
-        for line in self.lines:
-            if startStr in line:
-                isRemoving = True
-            if not isRemoving:
-                newLines.append(line)
-            if endStr in line:
-                isRemoving = False
-        self.lines = newLines
+        with open(self.filename, 'w') as f:
+            with open(tempname, 'r') as temp:
+                for line in temp:
+                    if startStr in line:
+                        isRemoving = True
+                    if not isRemoving:
+                        f.write(line)
+                    if endStr in line:
+                        isRemoving = False
+        os.remove(tempname)
 
     def remove_number_lines(self, minLineLen=None):
         """
         If a line contains only numeric characters, remove it
         minLineLen: if given, will only remove lines shorter than this
         """
-        newLines = []
-        for line in self.lines:
-            all_nums = True
-            found_num = False
-            for c in line.strip():
-                if c < '0' or c > '9':
-                    all_nums = False
-                    break
-                else:
-                    found_num = True
-            all_nums = all_nums and found_num
-            if not all_nums or (minLineLen != None and \
-                    len(line.strip()) >= minLineLen):
-                newLines.append(line)
-        self.lines = newLines
+        tempname = self.__copy_to_temp()
+        with open(self.filename, 'w') as f:
+            with open(tempname, 'r') as temp:
+                for line in temp:
+                    all_nums = True
+                    found_num = False
+                    for c in line.strip():
+                        if c < '0' or c > '9':
+                            all_nums = False
+                            break
+                        else:
+                            found_num = True
+                    all_nums = all_nums and found_num
+                    if not all_nums or (minLineLen != None and \
+                            len(line.strip()) >= minLineLen):
+                        f.write(line)
+        os.remove(tempname)
 
     def remove_empty_lines(self):
         """
         Remove lines that are just whitespace
         """
-        newLines = []
-        for line in self.lines:
-            if line.strip() != "":
-                newLines.append(line)
-        self.lines = newLines
+        tempname = self.__copy_to_temp()
+        with open(self.filename, 'w') as f:
+            with open(tempname, 'r') as temp:
+                for line in temp:
+                    if line.strip() != "":
+                        f.write(line)
+        os.remove(tempname)
 
     def remove_repeated_empty_lines(self):
         """
         Make sure there is no repeated sequence of empty lines longer
         than one.
         """
-        newLines = []
-        last_line_was_empty = False
-        for line in self.lines:
-            this_line_is_empty = line.strip() == ""
-            if not (last_line_was_empty and this_line_is_empty):
-                newLines.append(line)
-            last_line_was_empty = this_line_is_empty
-        self.lines = newLines
+        tempname = self.__copy_to_temp()
+        with open(self.filename, 'w') as f:
+            with open(tempname, 'r') as temp:
+                last_line_was_empty = False
+                for line in temp:
+                    this_line_is_empty = line.strip() == ""
+                    if not (last_line_was_empty and this_line_is_empty):
+                        f.write(line)
+                    last_line_was_empty = this_line_is_empty
+        os.remove(tempname)
 
     def sub(self, regex, replacement):
         """
@@ -148,13 +200,13 @@ class FileBuilder:
                 j += 1
             self.lines[i] = line
 
-    def write(self, fileName):
+    '''def write(self, fileName):
         """
         Write lines to file
         """
         with open(fileName, 'w') as f:
             for line in self.lines:
-                f.write(line)
+                f.write(line)'''
 
     def get_model(self, min_count=5, size=100, workers=3, fileName=None):
         """
