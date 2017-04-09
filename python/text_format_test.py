@@ -101,6 +101,11 @@ def test_remove_repeated_empty_lines():
     assert builder[6] == '\n'
     assert builder[7] == 'mno\n'
 
+def test_lowercase():
+    builder = FileBuilder("../test_text/lowercase.txt", outfile)
+    builder.to_lowercase()
+    assert builder[0] == 'abcd34*@\n'
+
 def test_get_model():
     builder = FileBuilder("../test_text/getmodel.txt", outfile)
     model = builder.get_model(1, 20, 1, "../test_text/test_model.w2v")
@@ -135,6 +140,7 @@ if __name__ == "__main__":
     test_apostrophes()
     test_remove_empty_lines()
     test_remove_repeated_empty_lines()
+    test_lowercase()
     #test_get_model()
     test_get_lines()
     test_s2m()

@@ -21,6 +21,7 @@ def modifyShakespeare(file_in, file_out):
             ';', '?', '[', ']', '\n']
     builder.to_words(char_words)
     builder.to_words_apostrophes()
+    builder.to_lowercase()
 
 def shakespeare2vec(filename):
     # set up problem
