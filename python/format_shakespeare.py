@@ -15,10 +15,10 @@ def modifyShakespeare(file_in, file_out):
     builder.remove_repeated_empty_lines()
     builder.remove_lines_within("<<", ">>")
     builder.remove_number_lines(6)
-    builder.sub('[<}`]', '')
+    builder.sub('[<}`\r]', '')
     builder.sub('[|_]', ' ')
     char_words = ['!', '"', '&', '(', ')', ',', '-', '.', ':',
-            ';', '?', '[', ']']
+            ';', '?', '[', ']', '\n']
     builder.to_words(char_words)
     builder.to_words_apostrophes()
 
@@ -48,5 +48,5 @@ def shakespeare2vec(filename):
     print(output_text)
 
 if __name__ == "__main__":
-    #modifyShakespeare(inname, outname)
-    shakespeare2vec(outname)
+    modifyShakespeare(inname, outname)
+    #shakespeare2vec(outname)

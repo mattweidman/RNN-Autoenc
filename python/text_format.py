@@ -195,6 +195,23 @@ class FileBuilder:
                     f.write(re.sub(regex, replacement, line))
         os.remove(tempname)
 
+    '''def to_words_line_breaks(self):
+        """
+        Surround line breaks with spaces so that they will count
+        as words.
+        """
+        tempname=  self.__copy_to_temp()
+        with open(self.filename, 'w') as f:
+            with open(tempname, 'r') as temp:
+                for line in temp:
+                    for i in range(len(line)-1,-1,-1):
+                        if line[i] not in ['\r', '\n']:
+                            break
+                    if i >= 0 and i < len(line)-1 and line[i] != ' ':
+                        line = line[:i+1] + ' ' + line[i+1:]
+                    f.write(line)
+        os.remove(tempname)'''
+
     def to_words(self, char_words):
         """
         Convert any chosen character into a word so that
@@ -211,8 +228,7 @@ class FileBuilder:
                             if j>0 and line[j-1] != ' ':
                                 line = line[:j] + ' ' + line[j:]
                                 j += 1
-                            if j < len(line)-1 and \
-                                    line[j+1] not in [' ','\n','\r']:
+                            if j < len(line)-1 and line[j+1] != ' ':
                                 line = line[:j+1] + ' ' + line[j+1:]
                                 j += 1
                         j += 1

@@ -54,11 +54,24 @@ def test_sub():
     builder.sub('[<}`.]', ' ')
     assert builder[0] == 'abc d ef   g\n'
 
+"""def test_line_breaks():
+    builder = FileBuilder("../test_text/line_break.txt", outfile)
+    builder.to_words_line_breaks()
+    assert builder[0] == 'abc def \n'
+    assert builder[1] == 'ghi  \n'
+    assert builder[2] == '\n'
+    assert builder[3] == '   j \n'
+    assert builder[4] == ' \n'
+    assert builder[5] == '  \n'
+    assert builder[6] == 'k \n'
+    assert builder[7] == '\n'
+    assert builder[8] == 'l \n' """
+
 def test_to_words():
     builder = FileBuilder("../test_text/to_words.txt", outfile)
-    builder.to_words(['!', '@', '#', '$', '%', '^', '&', '(', ')'])
-    assert builder[0] == 'abcdefg\n'
-    assert builder[1] == '$ % # & ( )\n'
+    builder.to_words(['!', '@', '#', '$', '%', '^', '&', '(', ')', '\n'])
+    assert builder[0] == 'abcdefg \n'
+    assert builder[1] == '$ % # & ( ) \n'
     assert builder[2] == '   ^   \n'
 
 def test_apostrophes():
@@ -117,10 +130,11 @@ if __name__ == "__main__":
     test_remove_within()
     test_remove_number_lines()
     test_sub()
+    #test_line_breaks()
     test_to_words()
     test_apostrophes()
     test_remove_empty_lines()
     test_remove_repeated_empty_lines()
-    test_get_model()
+    #test_get_model()
     test_get_lines()
     test_s2m()
