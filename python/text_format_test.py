@@ -1,4 +1,5 @@
 from text_format import FileBuilder
+from text_format import TextConverter
 
 outfile = "cache/test"
 
@@ -88,6 +89,17 @@ def test_get_model():
     builder = FileBuilder("../test_text/getmodel.txt", outfile)
     model = builder.get_model(1, 20, 1, "../test_text/test_model.w2v")
 
+def test_get_lines():
+    converter = TextConverter("../test_text/get_lines.txt")
+    assert converter.get_lines([8, 0, 4]) == ["i\n", "a\n", "e\n"]
+    assert converter.get_lines(range(2)) == ["a\n", "b\n"]
+    assert converter.get_lines([9]) == ["j\n"]
+    assert converter.get_lines(range(10)) == ["a\n", "b\n", "c\n", "d\n",
+        "e\n", "f\n", "g\n", "h\n", "i\n", "j\n"]
+    assert converter.get_lines(range(9,-1,-1)) == ["j\n", "i\n", "h\n",
+        "g\n", "f\n", "e\n", "d\n", "c\n", "b\n", "a\n"]
+    assert converter.get_lines([]) == []
+
 if __name__ == "__main__":
     test_load()
     test_remove_lines()
@@ -98,4 +110,5 @@ if __name__ == "__main__":
     test_apostrophes()
     test_remove_empty_lines()
     test_remove_repeated_empty_lines()
-    test_get_model()
+    #test_get_model()
+    test_get_lines()

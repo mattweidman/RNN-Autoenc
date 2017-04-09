@@ -256,17 +256,38 @@ class FileBuilder:
             model.save(fileName)
         return model
 
-class ArrayMaker:
+class TextConverter:
     """
-    Converts lines of text into numpy arrays.
+    Converts text into other representations, including numpy arrays.
     Numpy arrays are very memory-intensive, so we need functions
     from this array to take a few pieces of the text at a time.
     """
 
-    def __init__(self, lines, model):
+    def __init__(self, filename):
         """
-        lines: list of strings of text
-        model: word2vec embedding from the gensim library.
+        filename: name of file containing text
         """
-        self.lines = lines
-        self.model = model
+        self.filename = filename
+
+    def get_lines(self, line_nums):
+        """
+        Gets the list of strings that are at the specified line numbers.
+        line_nums: list of line numbers
+        """
+        # create list of (line number, line string) tuples
+        num_strs = []
+        line_num_set = set(line_nums) # slight optimization
+        with open(self.filename, 'r') as f:
+            for i, line in enumerate(f):
+                if i in line_num_set:
+                    num_strs.append((i,line))
+
+        # way of finding position requested by user, given a line number
+        line_num_to_index = dict((x,i) for i,x in enumerate(line_nums))
+
+        # put all strings into a list
+        line_strs = [""] * len(line_nums)
+        for line_num, line_str in num_strs:
+            index = line_num_to_index[line_num]
+            line_strs[index] = line_str
+        return line_strs

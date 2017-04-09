@@ -7,7 +7,7 @@ line_first = 175
 line_last = 124368
 
 def modifyShakespeare(file_in, file_out):
-    builder = FileBuilder(file_in)
+    builder = FileBuilder(file_in, file_out)
     builder.remove_lines(line_last, len(builder))
     builder.remove_lines(0, line_first)
     builder.remove_repeated_empty_lines()
@@ -19,7 +19,6 @@ def modifyShakespeare(file_in, file_out):
             ';', '?', '[', ']']
     builder.to_words(char_words)
     builder.to_words_apostrophes()
-    builder.write(file_out)
 
 if __name__ == "__main__":
     modifyShakespeare(inname, outname)
