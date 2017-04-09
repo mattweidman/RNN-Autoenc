@@ -82,6 +82,10 @@ def test_remove_repeated_empty_lines():
     assert builder[6] == '\n'
     assert builder[7] == 'mno\n'
 
+def test_get_model():
+    builder = FileBuilder("../test_text/getmodel.txt")
+    model = builder.get_model(1, 20, 1, "../test_text/test_model.w2v")
+
 if __name__ == "__main__":
     test_load()
     test_remove_lines()
@@ -92,3 +96,4 @@ if __name__ == "__main__":
     test_apostrophes()
     test_remove_empty_lines()
     test_remove_repeated_empty_lines()
+    #test_get_model()

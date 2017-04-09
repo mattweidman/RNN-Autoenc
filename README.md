@@ -1,7 +1,7 @@
 # RNN-Autoenc
 
 **TODO**
-* Create word2vec embeddings
+* Make text_format more memory-efficient
 * Train sentence autoencoder
 * Create sentence embeddings
 * Train paragraph autoencoder

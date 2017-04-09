@@ -1,5 +1,7 @@
 import re
 
+import gensim
+
 class FileBuilder:
     """
     Class for loading and modifying a file.
@@ -153,3 +155,32 @@ class FileBuilder:
         with open(fileName, 'w') as f:
             for line in self.lines:
                 f.write(line)
+
+    def get_model(self, min_count=5, size=100, workers=3, fileName=None):
+        """
+        Constructs word2vec model
+        min_count: forgets about words less frequent than this
+        size: output vector size
+        workers: number of worker threads running at once
+        fileName: file to write model to. If none, doesn't write.
+        """
+        model = gensim.models.Word2Vec(self.lines,
+            min_count=min_count, size=size, workers=workers)
+        if fileName is not None:
+            model.save(fileName)
+        return model
+
+class ArrayMaker:
+    """
+    Converts lines of text into numpy arrays.
+    Numpy arrays are very memory-intensive, so we need functions
+    from this array to take a few pieces of the text at a time.
+    """
+
+    def __init__(self, lines, model):
+        """
+        lines: list of strings of text
+        model: word2vec embedding from the gensim library.
+        """
+        self.lines = lines
+        self.model = model
