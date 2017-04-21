@@ -363,6 +363,15 @@ class TextConverter:
         """
         self.filename = filename
 
+        # find max line length
+        with open(self.filename, 'r') as f:
+            max_line_len = 0
+            for line in f:
+                word_len = len(line.split(' '))
+                if word_len > max_line_len:
+                    max_line_len = word_len
+        self.max_line_len = max_line_len
+
     def get_lines(self, line_nums):
         """
         Gets the list of strings that are at the specified line numbers.
@@ -386,14 +395,19 @@ class TextConverter:
             line_strs[index] = line_str
         return line_strs
 
-    def get_tensor(self, line_nums, model, line_len, embed_size):
+    def get_tensor(self, line_nums, model, embed_size, line_len=None):
         """
         Returns the numpy tensor representation of lines in text.
+        Tensor size: len(line_nums) x line_len x embed_size
         line_nums: line numbers of text to extract (list of ints)
         model: word2vec model
         line_len: maximum number of words in a line
+        if none, maximum line length of all words in document
         embed_size: size of embeddings
         """
+        if line_len is None:
+            line_len = self.max_line_len
+        
         tensor = np.zeros((len(line_nums), line_len, embed_size))
         lines = self.get_lines(line_nums)
         for i in range(len(line_nums)):

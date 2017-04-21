@@ -36,7 +36,7 @@ def shakespeare2vec(filename):
 
     # convert to tensor
     converter = TextConverter(filename)
-    tensor = converter.get_tensor(line_nums, model, line_len, embed_size)
+    tensor = converter.get_tensor(line_nums, model, embed_size)
 
     # convert back to sentence
     print(tensor_to_string(tensor, model))
