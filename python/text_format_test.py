@@ -1,5 +1,5 @@
 from text_format import FileBuilder
-from text_format import TextConverter
+from text_format import DataSet
 from text_format import string_to_matrix
 
 import numpy as np
@@ -111,7 +111,7 @@ def test_get_model():
     model = builder.get_model(1, 20, 1, "../test_text/test_model.w2v")
 
 def test_get_lines():
-    converter = TextConverter("../test_text/get_lines.txt")
+    converter = DataSet("../test_text/get_lines.txt")
     assert converter.get_lines([8, 0, 4]) == ["i\n", "a\n", "e\n"]
     assert converter.get_lines(range(2)) == ["a\n", "b\n"]
     assert converter.get_lines([9]) == ["j\n"]
@@ -129,6 +129,13 @@ def test_s2m():
     exp_matrix = np.array([[1,0], [0,1], [0,1], [1,0], [0,1], [0,0]])
     assert np.array_equal(calc_matrix, exp_matrix)
 
+def test_data_partitions():
+    dataset = DataSet("../test_text/get_lines.txt", 0.5, 0.3)
+    assert len(dataset) == 10
+    assert len(dataset.training_indices) == 5
+    assert len(dataset.validation_indices) == 3
+    assert len(dataset.test_indices) == 2
+
 if __name__ == "__main__":
     test_load()
     test_remove_lines()
@@ -144,3 +151,4 @@ if __name__ == "__main__":
     #test_get_model()
     test_get_lines()
     test_s2m()
+    test_data_partitions()

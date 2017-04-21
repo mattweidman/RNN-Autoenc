@@ -1,6 +1,6 @@
 from text_format import FileIterator
 from text_format import FileBuilder
-from text_format import TextConverter
+from text_format import DataSet
 from text_format import matrix_to_string, tensor_to_string
 
 inname = "../shakespeare/shakes_raw.txt"
@@ -35,10 +35,18 @@ def shakespeare2vec(filename):
     model = iterator.get_model(size=embed_size, workers=4)
 
     # convert to tensor
-    converter = TextConverter(filename)
+    converter = DataSet(filename, 0.5, 0.3)
     tensor = converter.get_tensor(line_nums, model, embed_size)
 
     # convert back to sentence
+    print(tensor_to_string(tensor, model))
+
+    # get random data
+    tensor = converter.get_training_data(5, model, embed_size)
+    print(tensor_to_string(tensor, model))
+    tensor = converter.get_validation_data(3, model, embed_size)
+    print(tensor_to_string(tensor, model))
+    tensor = converter.get_test_data(2, model, embed_size)
     print(tensor_to_string(tensor, model))
 
 if __name__ == "__main__":

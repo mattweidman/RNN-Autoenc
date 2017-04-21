@@ -350,27 +350,45 @@ def tensor_to_string(tensor, model):
     return output_text
 
 
-class TextConverter:
+class DataSet:
     """
-    Converts text into other representations, including numpy arrays.
+    Used for querying portions of data from file as numpy arrays.
     Numpy arrays are very memory-intensive, so we need functions
     from this array to take a few pieces of the text at a time.
     """
 
-    def __init__(self, filename):
+    def __init__(self, filename, part_training=1, part_validation=0):
         """
         filename: name of file containing text
+        part_training: proportion of data to put in training set
+        part_validation: proportion of data to put in validation set
+        rest of data will go in test set
         """
         self.filename = filename
 
-        # find max line length
+        # find max line length and number of lines
         with open(self.filename, 'r') as f:
             max_line_len = 0
+            num_lines = 0
             for line in f:
+                num_lines += 1
                 word_len = len(line.split(' '))
                 if word_len > max_line_len:
                     max_line_len = word_len
         self.max_line_len = max_line_len
+        self.num_lines = num_lines
+
+        # divide into training, validation, and test sets
+        indices = np.arange(self.num_lines)
+        np.random.shuffle(indices)
+        train_len = int(np.floor(self.num_lines * part_training))
+        valid_len = int(np.floor(self.num_lines * part_validation))
+        self.training_indices = indices[:train_len]
+        self.validation_indices = indices[train_len:train_len+valid_len]
+        self.test_indices = indices[train_len+valid_len:]
+
+    def __len__(self):
+        return self.num_lines
 
     def get_lines(self, line_nums):
         """
@@ -401,16 +419,69 @@ class TextConverter:
         Tensor size: len(line_nums) x line_len x embed_size
         line_nums: line numbers of text to extract (list of ints)
         model: word2vec model
+        embed_size: size of embeddings
         line_len: maximum number of words in a line
         if none, maximum line length of all words in document
-        embed_size: size of embeddings
         """
         if line_len is None:
             line_len = self.max_line_len
-        
+
         tensor = np.zeros((len(line_nums), line_len, embed_size))
         lines = self.get_lines(line_nums)
         for i in range(len(line_nums)):
             tensor[i] = string_to_matrix(lines[i], model, line_len,
                 embed_size)
         return tensor
+
+    def __get_data(self, indices, len_data, model, embed_size, line_len=None):
+        """
+        Get a tensor of data points from the some portion of
+        the data set.
+        indices: self.training_indices, validation_indices, or test_indices
+        len_data: number of data points to retrieve
+        model: word2vec model
+        embed_size: size of embeddings
+        line_len: maximum number of words in a line
+        if none, maximum line length of all words in document
+        """
+        line_nums = np.random.choice(indices, len_data)
+        return self.get_tensor(line_nums, model, embed_size, line_len)
+
+    def get_training_data(self, len_data, model, embed_size, line_len=None):
+        """
+        Get a tensor of data points from the training portion of
+        the data set.
+        len_data: number of data points to retrieve
+        model: word2vec model
+        embed_size: size of embeddings
+        line_len: maximum number of words in a line
+        if none, maximum line length of all words in document
+        """
+        return self.__get_data(self.training_indices, len_data, model,
+            embed_size, line_len)
+
+    def get_validation_data(self, len_data, model, embed_size, line_len=None):
+        """
+        Get a tensor of data points from the validation portion of
+        the data set.
+        len_data: number of data points to retrieve
+        model: word2vec model
+        embed_size: size of embeddings
+        line_len: maximum number of words in a line
+        if none, maximum line length of all words in document
+        """
+        return self.__get_data(self.validation_indices, len_data, model,
+            embed_size, line_len)
+
+    def get_test_data(self, len_data, model, embed_size, line_len=None):
+        """
+        Get a tensor of data points from the test portion of
+        the data set.
+        len_data: number of data points to retrieve
+        model: word2vec model
+        embed_size: size of embeddings
+        line_len: maximum number of words in a line
+        if none, maximum line length of all words in document
+        """
+        return self.__get_data(self.test_indices, len_data, model,
+            embed_size, line_len)
