@@ -357,9 +357,13 @@ class DataSet:
     from this array to take a few pieces of the text at a time.
     """
 
-    def __init__(self, filename, part_training=1, part_validation=0):
+    def __init__(self, filename, embed_size, model=None,
+            part_training=1, part_validation=0):
         """
         filename: name of file containing text
+        embed_size: size of embeddings
+        model: word2vec model - if none, will create its own with
+        min_count=5, workers=3
         part_training: proportion of data to put in training set
         part_validation: proportion of data to put in validation set
         rest of data will go in test set
@@ -387,6 +391,14 @@ class DataSet:
         self.validation_indices = indices[train_len:train_len+valid_len]
         self.test_indices = indices[train_len+valid_len:]
 
+        # define embedding size and word2vec model
+        self.embed_size = embed_size
+        if model is None:
+            iterator = FileIterator(filename)
+            self.model = iterator.get_model(size=embed_size)
+        else:
+            self.model = model
+
     def __len__(self):
         return self.num_lines
 
@@ -413,41 +425,30 @@ class DataSet:
             line_strs[index] = line_str
         return line_strs
 
-    def get_tensor(self, line_nums, model, embed_size, line_len=None):
+    def get_tensor(self, line_nums):
         """
         Returns the numpy tensor representation of lines in text.
         Tensor size: len(line_nums) x line_len x embed_size
         line_nums: line numbers of text to extract (list of ints)
-        model: word2vec model
-        embed_size: size of embeddings
-        line_len: maximum number of words in a line
-        if none, maximum line length of all words in document
         """
-        if line_len is None:
-            line_len = self.max_line_len
-
-        tensor = np.zeros((len(line_nums), line_len, embed_size))
+        tensor = np.zeros((len(line_nums), self.max_line_len, self.embed_size))
         lines = self.get_lines(line_nums)
         for i in range(len(line_nums)):
-            tensor[i] = string_to_matrix(lines[i], model, line_len,
-                embed_size)
+            tensor[i] = string_to_matrix(lines[i], self.model,
+                self.max_line_len, self.embed_size)
         return tensor
 
-    def __get_data(self, indices, len_data, model, embed_size, line_len=None):
+    def __get_data(self, indices, len_data):
         """
         Get a tensor of data points from the some portion of
         the data set.
         indices: self.training_indices, validation_indices, or test_indices
         len_data: number of data points to retrieve
-        model: word2vec model
-        embed_size: size of embeddings
-        line_len: maximum number of words in a line
-        if none, maximum line length of all words in document
         """
         line_nums = np.random.choice(indices, len_data)
-        return self.get_tensor(line_nums, model, embed_size, line_len)
+        return self.get_tensor(line_nums)
 
-    def get_training_data(self, len_data, model, embed_size, line_len=None):
+    def get_training_data(self, len_data):
         """
         Get a tensor of data points from the training portion of
         the data set.
@@ -457,10 +458,9 @@ class DataSet:
         line_len: maximum number of words in a line
         if none, maximum line length of all words in document
         """
-        return self.__get_data(self.training_indices, len_data, model,
-            embed_size, line_len)
+        return self.__get_data(self.training_indices, len_data)
 
-    def get_validation_data(self, len_data, model, embed_size, line_len=None):
+    def get_validation_data(self, len_data):
         """
         Get a tensor of data points from the validation portion of
         the data set.
@@ -470,10 +470,9 @@ class DataSet:
         line_len: maximum number of words in a line
         if none, maximum line length of all words in document
         """
-        return self.__get_data(self.validation_indices, len_data, model,
-            embed_size, line_len)
+        return self.__get_data(self.validation_indices, len_data)
 
-    def get_test_data(self, len_data, model, embed_size, line_len=None):
+    def get_test_data(self, len_data):
         """
         Get a tensor of data points from the test portion of
         the data set.
@@ -483,5 +482,4 @@ class DataSet:
         line_len: maximum number of words in a line
         if none, maximum line length of all words in document
         """
-        return self.__get_data(self.test_indices, len_data, model,
-            embed_size, line_len)
+        return self.__get_data(self.test_indices, len_data)

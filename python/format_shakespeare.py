@@ -32,21 +32,23 @@ def shakespeare2vec(filename):
 
     # train word2vec model
     iterator = FileIterator(filename)
-    model = iterator.get_model(size=embed_size, workers=4)
+    #model = iterator.get_model(size=embed_size, workers=4)
 
     # convert to tensor
-    converter = DataSet(filename, 0.5, 0.3)
-    tensor = converter.get_tensor(line_nums, model, embed_size)
+    converter = DataSet(filename, embed_size,
+        part_training=0.5, part_validation=0.3)
+    tensor = converter.get_tensor(line_nums)
 
     # convert back to sentence
+    model = converter.model
     print(tensor_to_string(tensor, model))
 
     # get random data
-    tensor = converter.get_training_data(5, model, embed_size)
+    tensor = converter.get_training_data(5)
     print(tensor_to_string(tensor, model))
-    tensor = converter.get_validation_data(3, model, embed_size)
+    tensor = converter.get_validation_data(3)
     print(tensor_to_string(tensor, model))
-    tensor = converter.get_test_data(2, model, embed_size)
+    tensor = converter.get_test_data(2)
     print(tensor_to_string(tensor, model))
 
 if __name__ == "__main__":
