@@ -399,6 +399,22 @@ class DataSet:
         else:
             self.model = model
 
+        # find list of words
+        word_set = set()
+        with open(self.filename, 'r') as f:
+            for line in f:
+                words = line.split(' ')
+                word_set.update(words)
+        self.word_list = sorted(word_set)
+
+        # add a padding word to list
+        self.padding_word = "<PADDING>"
+        self.word_list.append(self.padding_word)
+
+        # create word -> index map
+        self.word_indices = dict((word, i) for i, word in
+            enumerate(self.word_list))
+
     def __len__(self):
         return self.num_lines
 
@@ -483,3 +499,94 @@ class DataSet:
         if none, maximum line length of all words in document
         """
         return self.__get_data(self.test_indices, len_data)
+
+    def word_to_long_vector(self, word):
+        """
+        Converts a word to a long vector. A long vector in this case
+        is a one-hot vector with an element for each word.
+        If word not seen before, will return a vector of zeros.
+        word: word to convert
+        returns: vector length w, where w = number of words
+        """
+        vec = np.zeros((len(self.word_list)))
+        vec[self.word_indices[word]] = 1.0
+        return vec
+
+    def line_to_long_matrix(self, line):
+        """
+        Converts a line of text into a matrix of long word vectors.
+        line: string of space-separated words
+        returns: matrix size max_line_len x num_words
+        """
+        text_matrix = np.zeros((self.max_line_len, len(self.word_list)))
+        words = line.split(' ')
+        words_i = 0
+        matrix_i = 0
+        while matrix_i < self.max_line_len:
+            if words_i < len(words):
+                word = words[words_i]
+                if word in self.word_indices:
+                    text_matrix[matrix_i,:] = self.word_to_long_vector(word)
+                    matrix_i += 1
+                words_i += 1
+            else:
+                text_matrix[matrix_i,:] = self.word_to_long_vector(
+                    self.padding_word)
+                matrix_i += 1
+        return text_matrix
+
+    def line_nums_to_long_tensor(self, line_nums):
+        """
+        Converts the lines at indices line_nums into a tensor of one-hot
+        long vectors.
+        line_nums: list of line numbers to convert
+        """
+        tensor = np.zeros((len(line_nums), self.max_line_len,
+            len(self.word_list)))
+        lines = self.get_lines(line_nums)
+        for i in range(len(line_nums)):
+            tensor[i] = self.line_to_long_matrix(lines[i])
+        return tensor
+
+    def long_vector_to_word(self, vec):
+        """
+        Converts a long vector into a word. A long vector in this case
+        is a vector with an element for each word.
+        vec: vector to convert to word
+        returns: the word at the index in the vector with highest value
+        """
+        index = np.argmax(vec)
+        return self.word_list[index]
+
+    def long_matrix_to_string(self, matrix):
+        """
+        Converts a long matrix into a string.
+        matrix: size line_len x num_words
+        returns: string represented by matrix
+        """
+        # get list of words
+        sentence_arr = []
+        for vec in matrix:
+            word = self.long_vector_to_word(vec)
+            sentence_arr.append(word)
+
+        # remove padding at the end
+        for i in range(len(sentence_arr)-1, -1, -1):
+            if sentence_arr[i] != self.padding_word:
+                break
+        sentence_arr = sentence_arr[:i+1]
+
+        # join words together
+        return ' '.join(sentence_arr)
+
+    def long_tensor_to_string(self, tensor):
+        """
+        Converts a long tensor into a string.
+        tensor: size num_examples x line_len x num_words
+        returns: string represented by tensor
+        """
+        output_text = ""
+        for i in range(len(tensor)):
+            sentence = self.long_matrix_to_string(tensor[i])
+            output_text += sentence
+        return output_text
