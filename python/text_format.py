@@ -357,7 +357,7 @@ class DataSet:
     from this array to take a few pieces of the text at a time.
     """
 
-    def __init__(self, filename, embed_size, model=None,
+    def __init__(self, filename, embed_size, model=None, min_count=1,
             part_training=1, part_validation=0):
         """
         filename: name of file containing text
@@ -395,17 +395,28 @@ class DataSet:
         self.embed_size = embed_size
         if model is None:
             iterator = FileIterator(filename)
-            self.model = iterator.get_model(size=embed_size)
+            self.model = iterator.get_model(min_count=min_count,
+                size=embed_size)
         else:
             self.model = model
 
         # find list of words
-        word_set = set()
+        word_freq = {}
         with open(self.filename, 'r') as f:
             for line in f:
                 words = line.split(' ')
-                word_set.update(words)
-        self.word_list = sorted(word_set)
+                for word in words:
+                    if word in word_freq:
+                        word_freq[word] += 1
+                    else:
+                        word_freq[word] = 1
+        words_to_remove = set()
+        for word in word_freq:
+            if word_freq[word] < min_count:
+                words_to_remove.add(word)
+        for word in words_to_remove:
+            del word_freq[word]
+        self.word_list = word_freq.keys()
 
         # add a padding word to list
         self.padding_word = "<PADDING>"

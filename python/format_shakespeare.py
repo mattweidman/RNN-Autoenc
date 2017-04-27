@@ -56,7 +56,7 @@ def shakespeare2vec(filename):
 def shakespeare_long_vec(filename):
     # construct dataset
     embed_size = 100
-    dataset = DataSet(filename, embed_size)
+    dataset = DataSet(filename, embed_size, min_count=10)
 
     # test word_to_long_vector
     word = dataset.word_list[36]
@@ -80,6 +80,7 @@ def shakespeare_long_vec(filename):
     # test line_nums_to_long_tensor
     line_nums = [9, 7, 5, 28, 20]
     tensor = dataset.line_nums_to_long_tensor(line_nums)
+    print(tensor.shape)
     outp_string = dataset.long_tensor_to_string(tensor)
     print(outp_string)
 
