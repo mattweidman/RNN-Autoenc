@@ -454,7 +454,7 @@ class DataSet:
 
     def get_tensor(self, line_nums):
         """
-        Returns the numpy tensor representation of lines in text.
+        Returns the word2vec tensor representation of lines in text.
         Tensor size: len(line_nums) x line_len x embed_size
         line_nums: line numbers of text to extract (list of ints)
         """
@@ -467,23 +467,26 @@ class DataSet:
 
     def __get_data(self, indices, len_data):
         """
-        Get a tensor of data points from the some portion of
+        Get a tensors of data points from the some portion of
         the data set.
         indices: self.training_indices, validation_indices, or test_indices
         len_data: number of data points to retrieve
+        returns: word2vec (x) tensor, one-hot (y) tensor
         """
         line_nums = np.random.choice(indices, len_data)
-        return self.get_tensor(line_nums)
+        return self.get_tensor(line_nums), \
+            self.line_nums_to_long_tensor(line_nums)
 
     def get_training_data(self, len_data):
         """
-        Get a tensor of data points from the training portion of
+        Get a tensors of data points from the training portion of
         the data set.
         len_data: number of data points to retrieve
         model: word2vec model
         embed_size: size of embeddings
         line_len: maximum number of words in a line
         if none, maximum line length of all words in document
+        returns: word2vec (x) tensor, one-hot (y) tensor
         """
         return self.__get_data(self.training_indices, len_data)
 
@@ -496,6 +499,7 @@ class DataSet:
         embed_size: size of embeddings
         line_len: maximum number of words in a line
         if none, maximum line length of all words in document
+        returns: word2vec (x) tensor, one-hot (y) tensor
         """
         return self.__get_data(self.validation_indices, len_data)
 
@@ -508,6 +512,7 @@ class DataSet:
         embed_size: size of embeddings
         line_len: maximum number of words in a line
         if none, maximum line length of all words in document
+        returns: word2vec (x) tensor, one-hot (y) tensor
         """
         return self.__get_data(self.test_indices, len_data)
 

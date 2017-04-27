@@ -15,9 +15,9 @@ dropout_rate = 0.2
 # load data
 iterator = text_format.FileIterator(doc_name)
 model = iterator.get_model(min_count=min_count, size=embed_size)
-dataset = text_format.DataSet(doc_name, embed_size, model=model,
+dataset = text_format.DataSet(doc_name, embed_size, model=model, min_count=10,
     part_training=0.6, part_validation=0.2)
-minibatch = dataset.get_training_data(10)
+batch_x, batch_y = dataset.get_training_data(10)
 
 # get hyperparameters from data
 seq_len = dataset.max_line_len
@@ -32,7 +32,7 @@ encoder = keras.models.Model(enc_input, enc_output)
 encoder.compile(loss="categorical_crossentropy", optimizer="adam")
 
 # test encoder model
-autoenc_vectors = encoder.predict(minibatch)
+autoenc_vectors = encoder.predict(batch_x)
 print(autoenc_vectors.shape)
 
 # build decoder model
