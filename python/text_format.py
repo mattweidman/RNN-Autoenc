@@ -584,13 +584,15 @@ class DataSet:
         sentence_arr = []
         for vec in matrix:
             word = self.long_vector_to_word(vec)
+            if word is self.padding_word:
+                word = '*'
             sentence_arr.append(word)
 
         # remove padding at the end
-        for i in range(len(sentence_arr)-1, -1, -1):
+        '''for i in range(len(sentence_arr)-1, -1, -1):
             if sentence_arr[i] != self.padding_word:
                 break
-        sentence_arr = sentence_arr[:i+1]
+        sentence_arr = sentence_arr[:i+1]'''
 
         # join words together
         return ' '.join(sentence_arr)
@@ -604,5 +606,5 @@ class DataSet:
         output_text = ""
         for i in range(len(tensor)):
             sentence = self.long_matrix_to_string(tensor[i])
-            output_text += sentence
+            output_text += sentence + "\n"
         return output_text
