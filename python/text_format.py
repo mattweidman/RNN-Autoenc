@@ -493,10 +493,6 @@ class DataSet:
         Get a tensors of data points from the training portion of
         the data set.
         len_data: number of data points to retrieve
-        model: word2vec model
-        embed_size: size of embeddings
-        line_len: maximum number of words in a line
-        if none, maximum line length of all words in document
         returns: word2vec (x) tensor, one-hot (y) tensor
         """
         return self.__get_data(self.training_indices, len_data)
@@ -506,10 +502,6 @@ class DataSet:
         Get a tensor of data points from the validation portion of
         the data set.
         len_data: number of data points to retrieve
-        model: word2vec model
-        embed_size: size of embeddings
-        line_len: maximum number of words in a line
-        if none, maximum line length of all words in document
         returns: word2vec (x) tensor, one-hot (y) tensor
         """
         return self.__get_data(self.validation_indices, len_data)
@@ -519,13 +511,46 @@ class DataSet:
         Get a tensor of data points from the test portion of
         the data set.
         len_data: number of data points to retrieve
-        model: word2vec model
-        embed_size: size of embeddings
-        line_len: maximum number of words in a line
-        if none, maximum line length of all words in document
         returns: word2vec (x) tensor, one-hot (y) tensor
         """
         return self.__get_data(self.test_indices, len_data)
+
+    def __yield_data(self, indices, len_data):
+        """
+        Iterate through the lines at line_nums, returning (x, y) pairs.
+        indices: self.training_indices, validation_indices, or test_indices
+        len_data: number of data points to retrieve
+        returns: word2vec (x) matrices, one-hot (y) matrices
+        """
+        while True:
+            yield self.__get_data(indices, len_data)
+
+    def yield_training_data(self, len_data):
+        """
+        Iterate through data points from the training portion of
+        the data set.
+        len_data: number of data points to retrieve
+        returns: word2vec (x) tensor, one-hot (y) tensor
+        """
+        return self.__yield_data(self.training_indices, len_data)
+
+    def yield_validation_data(self, len_data):
+        """
+        Iterate through data points from the validation portion of
+        the data set.
+        len_data: number of data points to retrieve
+        returns: word2vec (x) tensor, one-hot (y) tensor
+        """
+        return self.__yield_data(self.validation_indices, len_data)
+
+    def yield_test_data(self, len_data):
+        """
+        Iterate through data points from the test portion of
+        the data set.
+        len_data: number of data points to retrieve
+        returns: word2vec (x) tensor, one-hot (y) tensor
+        """
+        return self.__yield_data(self.test_indices, len_data)
 
     def word_to_long_vector(self, word):
         """

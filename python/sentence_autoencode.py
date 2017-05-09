@@ -12,7 +12,7 @@ embed_size = 250
 #autoenc_embed_size = 250
 layer_size = 250
 dropout_rate = 0.2
-epochs = 8
+epochs = 1
 batch_size = 128
 sample_size = 4
 
@@ -44,7 +44,7 @@ dec_output = keras.layers.Activation('softmax')(H)
 
 # finalize autoencoder
 autoencoder = keras.models.Model(enc_input, dec_output)
-autoencoder.compile(loss="categorical_crossentropy", optimizer="adam")
+autoencoder.compile(loss="categorical_crossentropy", optimizer="rmsprop")
 
 # displays expected vs actual autoencoder output
 def print_samples():
@@ -61,12 +61,12 @@ def print_samples():
 print_samples()
 
 # train
-for epoch in range(epochs):
-    print("Iteration " + str(epoch))
+steps_per_epoch = len(dataset) / batch_size
+autoencoder.fit_generator(dataset.yield_training_data(batch_size),
+    steps_per_epoch, epochs)
 
-    # train
-    batch_x, batch_y = dataset.get_training_data(batch_size)
-    loss = autoencoder.fit(batch_x, batch_y)
+# test
+print_samples()
 
-    # test
-    print_samples()
+# save
+autoencoder.save('autoencoder.h5')
