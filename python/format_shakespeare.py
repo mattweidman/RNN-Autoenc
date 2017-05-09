@@ -25,6 +25,7 @@ def modifyShakespeare(file_in, file_out):
     builder.to_words(char_words)
     builder.to_words_apostrophes()
     builder.to_lowercase()
+    builder.strip_lines()
 
 def shakespeare2vec(filename):
     # set up problem
@@ -85,6 +86,6 @@ def shakespeare_long_vec(filename):
     print(outp_string)
 
 if __name__ == "__main__":
-    #modifyShakespeare(inname, outname)
+    modifyShakespeare(inname, outname)
     #shakespeare2vec(outname)
-    shakespeare_long_vec(outname)
+    #shakespeare_long_vec(outname)

@@ -273,6 +273,17 @@ class FileBuilder:
                     f.write(line.lower())
         os.remove(tempname)
 
+    def strip_lines(self):
+        """
+        Remove whitespace from beginnings and ends of lines.
+        """
+        tempname = self.__copy_to_temp()
+        with open(self.filename, 'w') as f:
+            with open(tempname, 'r') as temp:
+                for line in temp:
+                    f.write(line[:-1].strip() + line[-1])
+        os.remove(tempname)
+
     def get_model(self, min_count=5, size=100, workers=3, fileName=None):
         """
         Constructs word2vec model

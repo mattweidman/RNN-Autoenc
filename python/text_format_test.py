@@ -106,6 +106,13 @@ def test_lowercase():
     builder.to_lowercase()
     assert builder[0] == 'abcd34*@\n'
 
+def test_strip():
+    builder = FileBuilder("../test_text/strip.txt", outfile)
+    builder.strip_lines()
+    assert builder[0] == "hello\n"
+    assert builder[1] == "world\n"
+    assert builder[2] == "ok\n"
+
 def test_get_model():
     builder = FileBuilder("../test_text/getmodel.txt", outfile)
     model = builder.get_model(1, 20, 1, "../test_text/test_model.w2v")
@@ -153,3 +160,4 @@ if __name__ == "__main__":
     test_get_lines()
     test_s2m()
     test_data_partitions()
+    test_strip()
