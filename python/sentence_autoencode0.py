@@ -1,6 +1,5 @@
 import keras
-
-import text_format
+import numpy as np
 
 doc_name = "../shakespeare/shakes_out.txt"
 
@@ -16,13 +15,44 @@ epochs = 8
 batch_size = 128
 sample_size = 4
 
-# load data
-iterator = text_format.FileIterator(doc_name)
-model = iterator.get_model(min_count=min_count, size=embed_size)
-dataset = text_format.DataSet(doc_name, embed_size, model=model, min_count=10,
-    part_training=0.6, part_validation=0.2)
+# load lines
+with open(doc_name, 'r') as rfile:
+    lines = rfile.readlines()
 
-# get hyperparameters from data
+# sorted list of words in vocabulary
+vocab = []
+for line in lines: vocab += line.split()
+vocab = sorted(set(vocab))
+
+# word -> vector mapping
+class WordToOnehot:
+    def __init__(self, vocab):
+        self.word_to_index = dict((s,i) for i,s in enumerate(vocab))
+    def __getitem__(self, word):
+        if word not in self.word_to_index:
+            raise KeyError(str(word) + " has no one-hot representation")
+        index = self.word_to_index[word]
+        vec = np.zeros((len(self.word_to_index)))
+        vec[index] = 1
+        return vec
+word_to_onehot = WordToOnehot(vocab)
+
+# vector -> word mapping
+class OnehotToWord:
+    def __init__(self, vocab):
+        self.vocab = vocab
+    def __getitem__(self, vector):
+        if vector.shape != (len(vocab),):
+            raise KeyError("Vector should be size of vocabulary. Expected "\
+                + str((len(vocab),)) + " but got " + str(vector.shape))
+        index = np.argmax(vector)
+        return self.vocab[index]
+onehot_to_word = OnehotToWord(vocab)
+
+for word in vocab:
+    assert onehot_to_word[word_to_onehot[word]] == word
+
+'''# get hyperparameters from data
 seq_len = dataset.max_line_len
 num_words = len(dataset.word_list)
 
@@ -72,3 +102,4 @@ print_samples_callback = keras.callbacks.LambdaCallback(
 steps_per_epoch = len(dataset) / batch_size
 autoencoder.fit_generator(dataset.yield_training_data(batch_size),
     steps_per_epoch, epochs, callbacks=[checkpoint, print_samples_callback])
+'''
