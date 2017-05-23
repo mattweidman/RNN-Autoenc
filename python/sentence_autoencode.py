@@ -5,14 +5,14 @@ import text_format
 doc_name = "../shakespeare/shakes_out.txt"
 
 # hyperparameters
-min_count = 10 # yields vocab of size 5719 on Shakespeare dataset
+min_count = 2 # 10 yields vocab of size 5719 on Shakespeare dataset
 embed_size = 250
-#enc_lstm_size = 250
-#dec_lstm_size = 250
-#autoenc_embed_size = 250
+enc_lstm_size = 250
+dec_lstm_size = 250
 layer_size = 250
+encoder_size = 1200
 dropout_rate = 0.2
-epochs = 1
+epochs = 8
 batch_size = 128
 sample_size = 4
 
@@ -28,23 +28,27 @@ num_words = len(dataset.word_list)
 
 # build encoder model
 enc_input = keras.layers.Input(shape=[seq_len, embed_size])
-H = keras.layers.LSTM(layer_size, return_sequences=True)(enc_input)
-H = keras.layers.Dropout(dropout_rate)(H)
-H = keras.layers.LSTM(layer_size, return_sequences=False)(H)
-enc_output = keras.layers.Dropout(dropout_rate)(H)
+H = keras.layers.LSTM(enc_lstm_size, return_sequences=True,
+    dropout=dropout_rate)(enc_input)
+H = keras.layers.LSTM(enc_lstm_size, return_sequences=False,
+    dropout=dropout_rate)(H)
+enc_output = keras.layers.Dense(encoder_size, activation='softmax')(H)
 
 # build decoder model
 H = keras.layers.RepeatVector(seq_len)(enc_output)
-H = keras.layers.LSTM(layer_size, return_sequences=True)(H)
-H = keras.layers.Dropout(dropout_rate)(H)
-H = keras.layers.LSTM(layer_size, return_sequences=True)(H)
-H = keras.layers.Dropout(dropout_rate)(H)
-H = keras.layers.Dense(num_words, activation='sigmoid')(H)
-dec_output = keras.layers.Activation('softmax')(H)
+H = keras.layers.LSTM(dec_lstm_size, return_sequences=True,
+    dropout=dropout_rate)(H)
+H = keras.layers.LSTM(dec_lstm_size, return_sequences=True,
+    dropout=dropout_rate)(H)
+dec_output = keras.layers.Dense(num_words, activation='sigmoid')(H)
 
 # finalize autoencoder
 autoencoder = keras.models.Model(enc_input, dec_output)
 autoencoder.compile(loss="categorical_crossentropy", optimizer="rmsprop")
+
+# save picture of model
+keras.utils.plot_model(autoencoder, to_file='../model_vis.png',
+    show_shapes=True)
 
 # displays expected vs actual autoencoder output
 def print_samples():
